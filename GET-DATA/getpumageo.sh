@@ -1,24 +1,27 @@
-
-## Downloads and preps the entire countries worth of PUMA geographies
+## Downloads and preps the entire country worth of PUMA geographies
 
 set -e -u
 
-source "./statenames.sh"
+# clear previously downloaded data 
+rm -f puma100_ddl.sql puma100_data.sql
 
-# get length of an array
+# census state level codes
+source "./statenames.sh"
 tlen=${#FULLNAMES[@]}
- 
-rm -f allpumas.sql
-# use for loop read all puma geographies
+
+# use for loop read all puma geographies (clobbers ddl each time)
 for (( i=0; i<${tlen}; i++ )); do
 	FN=${FULLNAMES[i]}
 	C=${CODES[i]}
 	BNAME="tl_2009_${C}_puma100"
 
-	curl "ftp://tigerline.census.gov/${FN}/${BNAME}.zip" > "${BNAME}.zip"
-	unzip -o "${BNAME}.zip" -d "${BNAME}.d"
-	/usr/lib64/postgresql-8.4/bin/shp2pgsql -p -s 4269 -g -I "${BNAME}.d/${BNAME}" "${BNAME}"  > "puma100_ddl.sql"
-	/usr/lib64/postgresql-8.4/bin/shp2pgsql -a -s 4269 -g -I "${BNAME}.d/${BNAME}" "${BNAME}" >> "puma100_data.sql"
+	echo "working on $FN"
+	sleep 2
+
+	curl -s -S "ftp://tigerline.census.gov/${FN}/${BNAME}.zip" > "${BNAME}.zip"
+	unzip -o "${BNAME}.zip" -d "${BNAME}.d" 1>/dev/null
+	/usr/lib64/postgresql-8.4/bin/shp2pgsql -p -s 4269 -g -I "${BNAME}.d/${BNAME}" "${BNAME}"  > "puma100_ddl.sql" 2>/dev/null
+	/usr/lib64/postgresql-8.4/bin/shp2pgsql -a -s 4269 -g -I "${BNAME}.d/${BNAME}" "${BNAME}" >> "puma100_data.sql" 2>/dev/null 
 done
 
 #ftp://tigerline.census.gov/01_ALABAMA/tl_2009_01_puma100.zip
