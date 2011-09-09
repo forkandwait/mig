@@ -17,14 +17,13 @@ for ST in $STATES; do
 	curl -s "ftp://ftp2.census.gov/${YEAR}/pums/csv_p${ST}.zip" > "csv_p${ST}.zip"
 
 	sleep 2
-	unzip  -n "csv_h${ST}.zip" -d "h${ST}"
-	unzip  -n "csv_p${ST}.zip" -d "p${ST}"
+	unzip  -q -n "csv_h${ST}.zip" -d "h${ST}"
+	unzip  -q -n "csv_p${ST}.zip" -d "p${ST}"
 
 	rm  "csv_h${ST}.zip"
 	rm  "csv_p${ST}.zip"
 
 	sleep 4
-	exit
 done
 
 echo "Finished to download for year = $YEAR, $(date)"
