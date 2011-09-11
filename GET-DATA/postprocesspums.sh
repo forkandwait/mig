@@ -1,4 +1,6 @@
 
+set -e -u
+
 HHTAB=hh0509
 PTAB=p0509
 DB=mig
@@ -9,26 +11,17 @@ BEGIN;
 	
 	/* make 5 year age assignment */
 	alter table ${PTAB} add column agep5 int;
-	update ${PTAB} set agep5 = (age/5) * 5;
+	update ${PTAB} set agep5 = (agep/5) * 5;
 	
 	/* create unique state + puma code, index that */
-	alter table ${HTAB} add column geoid text;
-	update ${HTAB} set geoid = '0' || st || puma;
+	alter table ${HHTAB} add column geoid text;
+	update ${HHTAB} set geoid = '0' || st || puma;
 	alter table ${PTAB} add column geoid text;
 	update ${PTAB} set geoid = '0' || st || puma;
 
     /* geoid for migration source */
 	alter table ${PTAB} add column miggeoid text;
 	update ${PTAB} set miggeoid = migsp || migpuma;    --- XXX watch out for foreign migsp
-
-
-	/* migration and geo indexes */
-	create index ${PTAB}_miggeoid on ${PTAB}(miggeoid);
-	create index ${PTAB}_srcmiggeoid on ${PTAB}(geoid, miggeoid);
-	create index ${HTAB}_geoid_idx on ${HTAB}(geoid);
-	create index ${PTAB}_geoid_idx on ${PTAB}(geoid);
-	create index ${HTAB}_st on ${HTAB}(st);
-	create index ${PTAB}_st on ${PTAB}(st);
 
     /* set a bunch of 0/1 for tabulation later */
     alter table ${PTAB} add column iscollgrad int, 
@@ -39,22 +32,28 @@ BEGIN;
 
     update ${PTAB} set ishsgrad = 1 where schl >= 9;
     update ${PTAB} set ishsgrad = 0 where schl < 9;
-    
-    
+    COMMIT;
 
-
-
+    BEGIN;
 	/* basic key indexes */
-	create unique index ${HTAB}_serialno on ${HTAB}(serialno);
-	create unique index ${PTAB}_serialno on ${PTAB}(serialno); 
+	create unique index ${HHTAB}_person_idx on ${HHTAB}(serialno, sporder);
+	create unique index ${PTAB}_serialno_idx on ${PTAB}(serialno); 
 
-	/* creat lots of possibly useful indexes */ 
-	create index ${PTAB}_agep on ${PTAB}(agep);	
-	create index ${PTAB}_mig on ${PTAB}(mig);
-	create index ${PTAB}_sex on ${PTAB}(sex);	
+	/* other possibly useful indexes */ 
+	create index ${PTAB}_agep_idx on ${PTAB}(agep);	
+	create index ${PTAB}_mig_idx on ${PTAB}(mig);
+	create index ${PTAB}_sex_idx on ${PTAB}(sex);	
 
 
-	/*
+	/* migration and geo indexes */
+	create index ${PTAB}_miggeoid on ${PTAB}(miggeoid);
+	create index ${PTAB}_srcmiggeoid on ${PTAB}(geoid, miggeoid);
+	create index ${HHTAB}_geoid_idx on ${HHTAB}(geoid);
+	create index ${PTAB}_geoid_idx on ${PTAB}(geoid);
+	create index ${HHTAB}_st on ${HHTAB}(st);
+	create index ${PTAB}_st on ${PTAB}(st);
+
+	/*  -- maybe should use binary thing?
     create index ${PTAB}_fert on ${PTAB}(fert);
 	create index ${PTAB}_mar on ${PTAB}(mar);
 	create index ${PTAB}_mig on ${PTAB}(mig);	
@@ -73,9 +72,7 @@ BEGIN;
 	create index ${PTAB}_racnhpi on ${PTAB}(racnhpi);
 	create index ${PTAB}_waob on ${PTAB}(waob);
     -- language spoken at home... 
-
     */
-
 
 	ANALYZE;	
 	COMMIT;

@@ -24,7 +24,7 @@ clearstates:
 	touch .getacspums
 
 # push data into database
-.loadacspums: .getacspums loadacspums.sh
+.loadacspums: .getacspums .mkpumstabs loadacspums.sh
 	sh loadacspums.sh
 	touch .loadacspums
 
