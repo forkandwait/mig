@@ -14,7 +14,7 @@ psql $DB <<EOF
 				group by geoid, miggeoid;
 
         /* characteristics of PUMAS */
-        create table puma_char as 
+        create table pumachar as 
             select geoid
 			       , sum(pwgtp) as pop
                    , count(*) as recs

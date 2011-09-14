@@ -10,6 +10,9 @@ hwa hwi hwv hwy
 # deal with pums data 
 .PHONY: clearstates
 
+default:
+	echo default target, doing nothing
+
 clearstates:
 	rm -Rf $(STATES)
 
